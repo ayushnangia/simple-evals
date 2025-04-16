@@ -1,6 +1,6 @@
 # Overview
 This repository contains a lightweight library for evaluating language models.
-We are open sourcing it so we can be transparent about the accuracy numbers we're publishing alongside our latest models.
+We are open sourcing it so we can be transparent about the accuracy numbers we're publishing alongside our latest models. 
 
 ## Benchmark Results
 
@@ -79,6 +79,8 @@ We have implemented sampling interfaces for the following language model APIs:
 Make sure to set the `*_API_KEY` environment variables before using these APIs.
 
 ## Setup
+
+**Note:** This project requires Python 3.11 or higher.
 
 Due to the optional dependencies, we're not providing a unified setup mechanism. Instead, we're providing instructions for each eval and sampler.
 
