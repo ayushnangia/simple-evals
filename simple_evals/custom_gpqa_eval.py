@@ -2,18 +2,26 @@ import json
 import argparse
 import os
 import pandas as pd
-from simple_evals import common  # Assuming simple_evals is installed or in PYTHONPATH
-from simple_evals.gpqa_eval import GPQAEval
-from simple_evals.sampler.chat_completion_sampler import (
+from dotenv import load_dotenv # Added for .env support
+from . import common  # Assuming simple_evals is installed or in PYTHONPATH
+from .gpqa_eval import GPQAEval
+from .sampler.chat_completion_sampler import (
     ChatCompletionSampler,
 )
 
-# --- Configuration Placeholders ---
-# TODO: Replace this with your actual custom API base URL
-CUSTOM_API_BASE = "YOUR_CUSTOM_API_BASE_URL_HERE/v1"
-# --- End Configuration Placeholders ---
+# --- Configuration is now handled via .env file --- 
+# Remove old CUSTOM_API_BASE definition
 
 def main():
+    load_dotenv() # Load variables from .env file
+
+    # Get API Base URL from environment variable
+    custom_api_base = os.getenv("CUSTOM_API_BASE_URL")
+    if not custom_api_base:
+        print("Error: CUSTOM_API_BASE_URL environment variable not set.")
+        print("Please create a .env file and add the line: CUSTOM_API_BASE_URL=your_api_url")
+        return
+
     parser = argparse.ArgumentParser(
         description="Run GPQA evaluation using a custom OpenAI-like API (no API key required)."
     )
@@ -26,41 +34,43 @@ def main():
 
     args = parser.parse_args()
 
-    if "YOUR_CUSTOM_API_BASE_URL_HERE" in CUSTOM_API_BASE:
-        print("Error: Please replace 'YOUR_CUSTOM_API_BASE_URL_HERE' in the script with your actual API base URL.")
-        return
-
     # --- Sampler Setup ---
     # Uses ChatCompletionSampler, pointing to your custom API
     sampler = ChatCompletionSampler(
         model=args.model,
-        base_url=CUSTOM_API_BASE,
+        base_url=custom_api_base, # Use the variable loaded from .env
         # Add any other necessary parameters for ChatCompletionSampler
         # e.g., max_tokens, temperature, system_message if your API supports them
         max_tokens=8192, # Example parameter, adjust as needed
     )
 
     # --- Evaluation Setup ---
-    num_examples = (
-        args.examples if args.examples is not None else (5 if args.debug else None)
-    )
+    num_examples = args.examples # Default to None (all examples) if not specified
     eval_obj = GPQAEval(
         n_repeats=1 if args.debug else 10, num_examples=num_examples
     )
 
     # --- Run Evaluation ---
-    print(f"Running GPQA evaluation with model '{args.model}' via custom API at {CUSTOM_API_BASE}...")
+    print(f"Running GPQA evaluation with model '{args.model}' via custom API at {custom_api_base}...") # Use variable
     print(f"Debug mode: {args.debug}, Num examples: {'Default' if num_examples is None else num_examples}")
+
+    # Force sequential execution by setting the 'debug' environment variable
+    os.environ["debug"] = "true"
 
     result = eval_obj(sampler)
 
     # --- Reporting ---
     debug_suffix = "_DEBUG" if args.debug else ""
     file_stem = f"gpqa_{args.model}_custom"
-    report_filename = f"/tmp/{file_stem}{debug_suffix}.html"
-    result_filename = f"/tmp/{file_stem}{debug_suffix}.json"
+    output_dir = "gpqa_results"  # Define output directory relative to workspace
+    report_filename = os.path.join(output_dir, f"{file_stem}{debug_suffix}.html")
+    result_filename = os.path.join(output_dir, f"{file_stem}{debug_suffix}.json")
 
     print(f"Writing report to {report_filename}")
+
+    # Ensure the directory exists before writing the file
+    os.makedirs(os.path.dirname(report_filename), exist_ok=True)
+
     with open(report_filename, "w") as fh:
         fh.write(common.make_report(result))
 

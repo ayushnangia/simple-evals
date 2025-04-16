@@ -133,40 +133,39 @@ def main():
             args.examples if args.examples is not None else (5 if debug_mode else None)
         )
         # Set num_examples = None to reproduce full evals
-        match eval_name:
-            case "mmlu":
-                return MMLUEval(num_examples=1 if debug_mode else num_examples)
-            case "math":
-                return MathEval(
-                    equality_checker=equality_checker,
-                    num_examples=num_examples,
-                    n_repeats=1 if debug_mode else 10,
-                )
-            case "gpqa":
-                return GPQAEval(
-                    n_repeats=1 if debug_mode else 10, num_examples=num_examples
-                )
-            case "mgsm":
-                return MGSMEval(num_examples_per_lang=10 if debug_mode else 250)
-            case "drop":
-                return DropEval(
-                    num_examples=10 if debug_mode else num_examples,
-                    train_samples_per_prompt=3,
-                )
-            case "humaneval":
-                return HumanEval(num_examples=10 if debug_mode else num_examples)
-            case "simpleqa":
-                return SimpleQAEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                )
-            case "browsecomp":
-                return BrowseCompEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                )
-            case _:
-                raise Exception(f"Unrecognized eval type: {eval_name}")
+        if eval_name == "mmlu":
+            return MMLUEval(num_examples=1 if debug_mode else num_examples)
+        elif eval_name == "math":
+            return MathEval(
+                equality_checker=equality_checker,
+                num_examples=num_examples,
+                n_repeats=1 if debug_mode else 10,
+            )
+        elif eval_name == "gpqa":
+            return GPQAEval(
+                n_repeats=1 if debug_mode else 10, num_examples=num_examples
+            )
+        elif eval_name == "mgsm":
+            return MGSMEval(num_examples_per_lang=10 if debug_mode else 250)
+        elif eval_name == "drop":
+            return DropEval(
+                num_examples=10 if debug_mode else num_examples,
+                train_samples_per_prompt=3,
+            )
+        elif eval_name == "humaneval":
+            return HumanEval(num_examples=10 if debug_mode else num_examples)
+        elif eval_name == "simpleqa":
+            return SimpleQAEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+            )
+        elif eval_name == "browsecomp":
+            return BrowseCompEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+            )
+        else:
+            raise Exception(f"Unrecognized eval type: {eval_name}")
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)

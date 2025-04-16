@@ -110,6 +110,33 @@ python -m simple-evals.simple_evals --model <model_name> --examples <num_example
 ```
 This will launch evaluations through the OpenAI API.
 
+### Running the Custom GPQA Evaluation
+
+This repository also includes a script (`simple_evals/custom_gpqa_eval.py`) specifically for running the GPQA evaluation against a custom OpenAI-compatible API endpoint that does not require an API key.
+
+**Configuration:**
+
+1.  **Create a `.env` file:** Copy the example file `.env.example` to a new file named `.env` in the root directory of the project.
+    ```bash
+    cp .env.example .env
+    ```
+2.  **Edit `.env`:** Open the `.env` file and replace `YOUR_CUSTOM_API_BASE_URL_HERE` with the actual base URL of your custom API endpoint (e.g., `CUSTOM_API_BASE_URL=http://localhost:8000/v1`).
+    *Note: The `.env` file is listed in `.gitignore` and should not be committed to your repository.*
+
+**Execution:**
+
+Run the script from the root directory of the repository:
+
+```bash
+python simple_evals/custom_gpqa_eval.py --model <your_model_identifier> [--debug] [--examples <num_examples>]
+```
+
+-	`--model`: Specify a model name (even if your custom API doesn't use it, it's used for naming output files). Defaults to `custom-model`.
+-	`--debug`: Runs with fewer repeats (`n_repeats=1`) for quicker testing.
+-	`--examples <num_examples>`: Optionally limit the number of GPQA examples to run. If omitted, all examples are used.
+
+Results will be saved in the `gpqa_results/` directory (this directory is ignored by Git via `.gitignore`).
+
 ## Notes
 
 [^1]:chatgpt system message: "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"

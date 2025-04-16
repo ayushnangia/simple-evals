@@ -6,11 +6,17 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 """
 
 import re
+import sys
 from typing import Optional
 
-from . import common
-from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .common import (
+    HTML_JINJA,
+    url_to_fileobj,
+    jinja_env,
+    map_with_progress,
+    aggregate_results,
+)
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 LATIN_LANGUAGES = ["de", "en", "es", "fr", "sw"]
@@ -107,7 +113,7 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with common.url_to_fileobj(fpath, binary=True) as f:
+    with url_to_fileobj(fpath, binary=True) as f:
         for raw_line in f:
             line = raw_line.decode("utf-8").strip()
             inputs, targets = line.split("\t")
@@ -171,7 +177,7 @@ class MGSMEval(Eval):
             extracted_answer = parse_answer(response_text, answer_prefix)
 
             score = score_mgsm(correct_answer, extracted_answer)
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
@@ -186,5 +192,5 @@ class MGSMEval(Eval):
                 metrics={language: score, latin_language: score},
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results, default_stats=("mean", "std"))
+        results = map_with_progress(fn, self.examples)
+        return aggregate_results(results, default_stats=("mean", "std"))

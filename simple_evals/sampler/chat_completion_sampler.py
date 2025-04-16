@@ -4,13 +4,13 @@ from typing import Any
 
 import openai
 from openai import OpenAI
+import requests
+import tenacity
 
-from ..types import MessageList, SamplerBase
+from ..eval_types import MessageList, SamplerBase
 
-OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
+OPENAI_SYSTEM_MESSAGE_API = ""
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (
-    "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture."
-    + "\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
 )
 
 
@@ -25,10 +25,15 @@ class ChatCompletionSampler(SamplerBase):
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
+        base_url: str | None = None,
+        api_key: str | None = None,
     ):
-        self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
-        # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
+        actual_api_key = api_key
+        if base_url and actual_api_key is None:
+            actual_api_key = "no_key"  # Provide a dummy key if base_url is set but no key is needed/provided
+
+        # If api_key is not provided (and base_url is not set), it will default to OPENAI_API_KEY env var
+        self.client = OpenAI(base_url=base_url, api_key=actual_api_key)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
@@ -63,6 +68,7 @@ class ChatCompletionSampler(SamplerBase):
                     messages=message_list,
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
+                    stop="<|end|>",
                 )
                 return response.choices[0].message.content
             # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
