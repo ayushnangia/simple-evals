@@ -11,13 +11,11 @@ from simple_evals.sampler.chat_completion_sampler import (
 # --- Configuration Placeholders ---
 # TODO: Replace this with your actual custom API base URL
 CUSTOM_API_BASE = "YOUR_CUSTOM_API_BASE_URL_HERE/v1"
-# TODO: Set this environment variable or modify authentication as needed
-CUSTOM_API_KEY = os.environ.get("CUSTOM_API_KEY")
 # --- End Configuration Placeholders ---
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run GPQA evaluation using a custom OpenAI-like API."
+        description="Run GPQA evaluation using a custom OpenAI-like API (no API key required)."
     )
     # Allow specifying a model, even if the custom API might ignore it or handle it differently
     parser.add_argument("--model", type=str, default="custom-model", help="Model name to pass to the custom API")
@@ -25,14 +23,8 @@ def main():
     parser.add_argument(
         "--examples", type=int, help="Number of examples to use (overrides default)"
     )
-    # Add argument for API key if needed, otherwise rely on environment variable
-    parser.add_argument("--api-key", type=str, default=CUSTOM_API_KEY, help="API key for the custom API (overrides CUSTOM_API_KEY env var)")
 
     args = parser.parse_args()
-
-    if not args.api_key:
-        print("Error: API key not found. Set the CUSTOM_API_KEY environment variable or use the --api-key argument.")
-        return
 
     if "YOUR_CUSTOM_API_BASE_URL_HERE" in CUSTOM_API_BASE:
         print("Error: Please replace 'YOUR_CUSTOM_API_BASE_URL_HERE' in the script with your actual API base URL.")
@@ -42,7 +34,6 @@ def main():
     # Uses ChatCompletionSampler, pointing to your custom API
     sampler = ChatCompletionSampler(
         model=args.model,
-        api_key=args.api_key,
         base_url=CUSTOM_API_BASE,
         # Add any other necessary parameters for ChatCompletionSampler
         # e.g., max_tokens, temperature, system_message if your API supports them
