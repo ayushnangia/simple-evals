@@ -46,7 +46,7 @@ def main():
         base_url=CUSTOM_API_BASE,
         # Add any other necessary parameters for ChatCompletionSampler
         # e.g., max_tokens, temperature, system_message if your API supports them
-        max_tokens=2048, # Example parameter, adjust as needed
+        max_tokens=8192, # Example parameter, adjust as needed
     )
 
     # --- Evaluation Setup ---
