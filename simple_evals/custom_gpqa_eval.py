@@ -16,7 +16,8 @@ def main():
     load_dotenv() # Load variables from .env file
 
     # Get API Base URL from environment variable
-    custom_api_base = os.getenv("CUSTOM_API_BASE_URL")
+    custom_api_base = "https://kmussaworkspace3--example-sglang-openai-compatible-serve.modal.run/v1"
+    # custom_api_base = os.getenv("CUSTOM_API_BASE_URL")
     if not custom_api_base:
         print("Error: CUSTOM_API_BASE_URL environment variable not set.")
         print("Please create a .env file and add the line: CUSTOM_API_BASE_URL=your_api_url")

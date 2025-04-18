@@ -48,23 +48,62 @@ class GPQAEval(Eval):
             choices_dict = dict(
                 A=choices[0], B=choices[1], C=choices[2], D=choices[3], Question=row["Question"]
             )
-            prompt_messages = [
+            # Initialize conversation history with the first user message
+            current_convo_history = [
                 sampler._pack_message(
                     content=format_multichoice_question(choices_dict), role="user"
                 )
             ]
-            response_text = sampler(prompt_messages)
+            response_text = sampler(current_convo_history) # Use history for first call
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
             extracted_answer = match.group(1) if match else None
+            first_response_msg = sampler._pack_message(content=response_text, role="assistant") # Pack first response
+            current_convo_history = current_convo_history + [first_response_msg] # Add first response to history
+
+            # --- Re-prompt logic ---
+            if extracted_answer is None:
+                print(f"WARN: Initial extraction failed. Re-prompting...") # Optional: Add warning
+                # Correct reprompt message content
+                reprompt_message_content = (
+                    "</think>"
+                    # "Your previous response did not contain a valid answer choice in the expected format. "
+                    # "Please look at the question again and respond *only* with the letter corresponding "
+                    # "to the correct answer (A, B, C, or D), enclosed in <answer> tags. "
+                    # "For example: <answer>A</answer>"
+                )
+                user_reprompt_msg = sampler._pack_message(content=reprompt_message_content, role="user") # Pack user re-prompt
+                # The history now contains: [initial_user, first_assistant, user_reprompt]
+                messages_for_second_call = current_convo_history + [user_reprompt_msg]
+
+                # Call sampler again with the extended history
+                response_text = sampler(messages_for_second_call) # This is now the second response text
+                current_convo_history = messages_for_second_call # Update history to include the user re-prompt
+
+                # --- Add this line ---
+                print(f"DEBUG: Second response received:\n---\n{response_text}\n---")
+                # --------------------
+
+                # Try extracting again from the second response
+                match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
+                extracted_answer = match.group(1) if match else None
+            # --- End re-prompt logic ---
+
+            # Print correct vs extracted answer to CLI
+            print(f"  Correct: {correct_answer}, Extracted: {extracted_answer}")
+
             score = 1.0 if extracted_answer == correct_answer else 0.0
+            # Create the final assistant message dict using the final response_text
+            final_assistant_message = sampler._pack_message(content=response_text, role="assistant")
+            # Render HTML using the history *before* the final assistant message
             html = common.jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt_messages,
-                next_message=dict(content=response_text, role="assistant"),
+                prompt_messages=current_convo_history, # Pass the full history before the last response
+                next_message=final_assistant_message, # Pass the final response separately
                 score=score,
                 correct_answer=correct_answer,
                 extracted_answer=extracted_answer,
             )
-            convo = prompt_messages + [dict(content=response_text, role="assistant")]
+            # The final convo includes the full history + the final assistant message
+            convo = current_convo_history + [final_assistant_message]
             return SingleEvalResult(
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
