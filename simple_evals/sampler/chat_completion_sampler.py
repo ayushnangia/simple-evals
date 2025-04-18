@@ -57,7 +57,7 @@ class ChatCompletionSampler(SamplerBase):
     def _pack_message(self, role: str, content: Any):
         return {"role": str(role), "content": content}
 
-    def __call__(self, message_list: MessageList) -> str:
+    def __call__(self, message_list: MessageList, create_kwargs: dict = None) -> str:
         if self.system_message:
             message_list = [self._pack_message("system", self.system_message)] + message_list
         trial = 0
@@ -69,6 +69,7 @@ class ChatCompletionSampler(SamplerBase):
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     stop="<|end|>",
+                    **create_kwargs
                 )
                 return response.choices[0].message.content
             # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
