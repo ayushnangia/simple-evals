@@ -16,7 +16,8 @@ def main():
     load_dotenv() # Load variables from .env file
 
     # Get API Base URL from environment variable
-    custom_api_base = "https://kmussaworkspace3--example-sglang-openai-compatible-serve.modal.run/v1"
+    # custom_api_base = "https://agokrani--example-sglang-openai-compatible-serve.modal.run/v1"
+    custom_api_base = "https://kmussaworkspace3--example-new-sglang-openai-compatible-serve.modal.run/v1"
     # custom_api_base = os.getenv("CUSTOM_API_BASE_URL")
     if not custom_api_base:
         print("Error: CUSTOM_API_BASE_URL environment variable not set.")
@@ -43,6 +44,7 @@ def main():
         # Add any other necessary parameters for ChatCompletionSampler
         # e.g., max_tokens, temperature, system_message if your API supports them
         max_tokens=4096, # Example parameter, adjust as needed
+        frequency_penalty=0.8, # Set frequency penalty to 0.1
         # system_message="Your role as an assistant involves thoroughly exploring questions through a systematic long thinking process before providing the final precise and accurate solutions. This requires engaging in a comprehensive cycle of analysis, summarizing, exploration, reassessment, reflection, backtracing, and iteration to develop well-considered thinking process. Please structure your response into two main sections: Thought and Solution. In the Thought section, detail your reasoning process using the specified format: <think> {thought with steps separated with '\\n\\n'} <\/think> Each step should include detailed considerations such as analisying questions, summarizing relevant findings, brainstorming new ideas, verifying the accuracy of the current steps, refining any errors, and revisiting previous steps. In the Solution section, based on various attempts, explorations, and reflections from the Thought section, systematically present the final solution that you deem correct. The solution should remain a logical, accurate, concise expression style and detail necessary step needed to reach the conclusion, formatted as follows: <answer> {final formatted, precise, and clear solution} <\/answer> Now, try to solve the following question through the above guidelines:"
     )
 

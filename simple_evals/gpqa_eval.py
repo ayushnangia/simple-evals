@@ -56,7 +56,7 @@ class GPQAEval(Eval):
             ]
             response_text = sampler(current_convo_history) # Use history for first call
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
-            extracted_answer = match.group(1) if match else None
+            extracted_answer = match.group(1).upper() if match else None
             first_response_msg = sampler._pack_message(content=response_text, role="assistant") # Pack first response
             current_convo_history = current_convo_history + [first_response_msg] # Add first response to history
 
@@ -65,11 +65,10 @@ class GPQAEval(Eval):
                 print(f"WARN: Initial extraction failed. Re-prompting...") # Optional: Add warning
                 # Correct reprompt message content
                 reprompt_message_content = (
-                    "</think>"
-                    # "Your previous response did not contain a valid answer choice in the expected format. "
-                    # "Please look at the question again and respond *only* with the letter corresponding "
-                    # "to the correct answer (A, B, C, or D), enclosed in <answer> tags. "
-                    # "For example: <answer>A</answer>"
+                    # "</think>"
+                    "Your previous response did not contain a valid answer choice in the expected format. "
+                    "Please look at the question again and respond *only* with the letter corresponding "
+                    "to the correct answer (A, B, C, or D)"
                 )
                 user_reprompt_msg = sampler._pack_message(content=reprompt_message_content, role="user") # Pack user re-prompt
                 # The history now contains: [initial_user, first_assistant, user_reprompt]

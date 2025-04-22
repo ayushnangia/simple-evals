@@ -8,6 +8,7 @@ import jinja2
 import numpy as np
 import requests
 from tqdm import tqdm
+import logging
 
 from .eval_types import EvalResult, Message, SamplerBase, SingleEvalResult
 
@@ -23,6 +24,7 @@ D) {D}
 """.strip()
 
 ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer[ \t]*:[ \t]*\$?([A-D])\$?"
+# ANSWER_PATTERN_MULTICHOICE = r"(?i)(?:(?:(?:Final\s+)?Answer|Choice|Option)\s*(?:is)?\s*:?\s*)?\(?\[?([A-D])\]?\)?(?=\s|\W|$)"
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\n]+)"
 MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
     "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
@@ -234,9 +236,21 @@ _message_template = """
 def message_to_html(message: Message) -> str:
     """
     Generate HTML snippet (inside a <div>) for a message.
+    Handles cases where message might not be a dict with 'role' and 'content'.
     """
+    if isinstance(message, dict) and "role" in message and "content" in message:
+        role = message["role"]
+        content = message["content"]
+        variant = message.get("variant", None)
+    else:
+        # Fallback for unexpected message format
+        logging.warning(f"Unexpected message format encountered: {message}. Using default rendering.")
+        role = "unknown"
+        content = str(message) # Display the string representation
+        variant = "error"
+
     return jinja_env.from_string(_message_template).render(
-        role=message["role"], content=message["content"], variant=message.get("variant", None)
+        role=role, content=content, variant=variant
     )
 
 

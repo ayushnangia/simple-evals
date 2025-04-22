@@ -27,6 +27,7 @@ class ChatCompletionSampler(SamplerBase):
         max_tokens: int = 1024,
         base_url: str | None = None,
         api_key: str | None = None,
+        frequency_penalty: float = 0.0,
     ):
         actual_api_key = api_key
         if base_url and actual_api_key is None:
@@ -39,6 +40,7 @@ class ChatCompletionSampler(SamplerBase):
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.image_format = "url"
+        self.frequency_penalty = frequency_penalty
 
     def _handle_image(
         self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
@@ -69,6 +71,7 @@ class ChatCompletionSampler(SamplerBase):
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     stop="<|end|>",
+                    frequency_penalty=self.frequency_penalty,
                 )
                 return response.choices[0].message.content
             # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
