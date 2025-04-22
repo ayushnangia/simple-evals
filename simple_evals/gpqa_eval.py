@@ -70,12 +70,17 @@ class GPQAEval(Eval):
                     "Please look at the question again and respond *only* with the letter corresponding "
                     "to the correct answer (A, B, C, or D)"
                 )
-                user_reprompt_msg = sampler._pack_message(content=reprompt_message_content, role="user") # Pack user re-prompt
+                user_reprompt_msg = sampler._pack_message(content=reprompt_message_content, role="assistant") # Pack user re-prompt
                 # The history now contains: [initial_user, first_assistant, user_reprompt]
                 messages_for_second_call = current_convo_history + [user_reprompt_msg]
 
                 # Call sampler again with the extended history
-                response_text = sampler(messages_for_second_call) # This is now the second response text
+                create_kwargs = {}
+                create_kwargs['extra_body'] = {}
+                create_kwargs['extra_body']['continue_final_message'] = True
+                create_kwargs['extra_body']['add_generation_prompt'] = False
+                
+                response_text = sampler(messages_for_second_call, create_kwargs) # This is now the second response text
                 current_convo_history = messages_for_second_call # Update history to include the user re-prompt
 
                 # --- Add this line ---
